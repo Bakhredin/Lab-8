@@ -1,0 +1,215 @@
+import pygame
+import random
+width,height = 1100,700
+pygame.init()
+
+block = 25
+
+score = 0 
+
+SQUARE,EIGHT,CIRCLE,CIRCLE2 = True,False,False,False
+
+coin2 = pygame.USEREVENT+1
+
+dx , dy = 0, 0
+
+level = 1
+
+dirs = {'W': True, 'S': True, 'A': True, 'D': True}
+
+screen=pygame.display.set_mode([width,height])
+font1=pygame.image.load('/Users/endurance/Desktop/PP2_string/LAB 8/SNAKE/game_background (1).jpg').convert()
+SNAKE=pygame.image.load('/Users/endurance/Desktop/PP2_string/LAB 8/SNAKE/snake.png').convert_alpha()
+SNAKE1=pygame.image.load('/Users/endurance/Desktop/PP2_string/LAB 8/SNAKE/snake2.png').convert_alpha()
+SNAKE2=pygame.image.load('/Users/endurance/Desktop/PP2_string/LAB 8/SNAKE/snake3.png').convert_alpha()
+SNAKE3=pygame.image.load('/Users/endurance/Desktop/PP2_string/LAB 8/SNAKE/snake4.png').convert_alpha()
+WALLS = pygame.image.load('/Users/endurance/Desktop/PP2_string/LAB 8/SNAKE/wall.png').convert_alpha()
+menu_background = pygame.image.load('/Users/endurance/Desktop/PP2_string/LAB 8/SNAKE/menu_background (1).jpg').convert()
+apple = pygame.image.load('/Users/endurance/Desktop/PP2_string/LAB 8/SNAKE/apple.png').convert_alpha()
+score_font = pygame.font.SysFont('Times New Roman',24)
+font_menu = pygame.font.SysFont('Times New Roman',60)
+clock=pygame.time.Clock()
+fps=6
+length=1
+level = 1 
+
+
+body = []
+if level==1:
+    for i in range(250,width-300,25):
+        body.append((i,200))
+    for i in range(250,width-300,25):
+        body.append((i,height-250))
+    for i in range(0,width,25):
+        body.append((i,0))
+    for i in range(0,width,25):
+        body.append((i,height-25))
+    for i in range(25,height-25,25):
+        body.append((0,i))
+    for i in range(25,height-25,25):
+        body.append((width-25,i))
+
+x, y = random.randrange(0, width-32, block),random.randrange(0, height-32, block)
+applecoord = random.randrange(0, width-32, block),random.randrange(0, height-32, block)
+snake=[(x,y)]
+while (x,y) in body:
+    x, y = random.randrange(0, width-32, block),random.randrange(0, height-32, block)
+while applecoord in  body:
+    applecoord = random.randrange(0, width-32, block),random.randrange(0, height-32, block)
+while applecoord in snake:
+    applecoord = random.randrange(0, width-32, block),random.randrange(0, height-32, block)
+
+def main_menu():
+    menu = True
+    while menu:
+
+        screen.blit(menu_background, (0, 0))
+    
+        # menu text
+
+        render_menu = font_menu.render('PRESS ENTER', True, pygame.Color('white'))
+        screen.blit(render_menu, (340, 520))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exit()
+
+        pygame.display.flip()
+
+        key = pygame.key.get_pressed()
+
+        if key[pygame.K_RETURN]: 
+            menu = False
+            break
+        if key[pygame.K_SPACE]:
+            menu = False
+            exit()
+def gameover():
+    menu = True
+    while menu:
+        screen.blit(menu_background,(0,0))
+        render_menu = font_menu.render('GAME OVER', True, pygame.Color('white'))
+        screen.blit(render_menu, (370, 520))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                exit()
+
+        pygame.display.flip()
+
+        key = pygame.key.get_pressed()
+        if key[pygame.K_RETURN]: 
+            menu = False
+            exit()
+        if key[pygame.K_SPACE]:
+            menu = False
+            exit()
+
+main_menu()
+
+while True:
+
+    if (len(snake) != len(set(snake))):
+        gameover()
+
+    screen.blit(font1,(0,0))
+
+    fontscore = score_font.render(f'SCORE: {score}',True, pygame.Color('white'))
+
+    screen.blit(fontscore,(15,15))
+
+    screen.blit(apple,(applecoord[0]+6,applecoord[1]+6))
+
+     # if snake eats apple
+    if snake[-1] in body:
+        gameover()
+
+    for i in body:
+        screen.blit(WALLS,i)
+
+
+
+    for i in snake:
+        if SQUARE == True:
+            screen.blit(SNAKE,i)
+        elif EIGHT == True:
+            screen.blit(SNAKE1,i)
+        elif CIRCLE == True:
+            screen.blit(SNAKE2,i)
+        elif CIRCLE2 == True:
+            screen.blit(SNAKE3,i)
+
+    for i in range(50,1100,25):
+        pygame.draw.line(screen,pygame.Color('black'),(i,0),(i,700))
+    for i in range(50,700,25):
+        pygame.draw.line(screen,pygame.Color('black'),(0,i),(1100,i))
+
+    x += dx * block
+    y += dy * block
+    snake.append((x,y))
+    snake = snake[-length:]
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            exit()
+        if event.type == coin2:
+            applecoord = random.randrange(0, width-32, block), random.randrange(0, height-2, block)
+            while applecoord in body:
+                applecoord = random.randrange(0, width-32, block), random.randrange(0, height-2, block)
+            while applecoord in snake:
+                applecoord = random.randrange(0, width-32, block), random.randrange(0, height-2, block)
+        # if event.type == hide:
+        #     applecoord = (-100,-100)
+        # if event.type == coin2:
+        #     pygame.time.set_timer(coin2,2000,loops=1)
+
+    
+    if snake[-1] == applecoord:
+
+        pygame.time.set_timer(coin2,10000,loops=1)
+
+        length+=1
+        n = random.randrange(1,5)
+        score+=n
+        applecoord = random.randrange(0, width-32, block), random.randrange(0, height-2, block)
+        while applecoord in body:
+            applecoord = random.randrange(0, width-32, block), random.randrange(0, height-2, block)
+        while applecoord in snake:
+            applecoord = random.randrange(0, width-32, block), random.randrange(0, height-2, block)
+
+    # skin of our snake changes due to score
+
+    if score >= 5 and score < 10:
+        SQUARE = False
+        EIGHT = True
+    elif score >= 10 and score < 15:
+        EIGHT = False
+        CIRCLE = True
+    elif score >= 15:
+        CIRCLE = False
+        CIRCLE2 = True
+        fps+=0.25
+        
+
+    key=pygame.key.get_pressed()
+
+    if key[pygame.K_SPACE]:
+        exit()
+
+    # control
+
+    if key[pygame.K_UP] and dirs['W']:
+        dx, dy = 0, -1
+        dirs = {'W': True, 'S': False, 'A': True, 'D': True}
+    if key[pygame.K_DOWN] and dirs['S']:
+        dx, dy = 0, 1
+        dirs = {'W': False, 'S': True, 'A': True, 'D': True}
+    if key[pygame.K_LEFT] and dirs['A']:
+        dx, dy = -1, 0
+        dirs = {'W': True, 'S': True, 'A': True, 'D': False}
+    if key[pygame.K_RIGHT] and dirs['D']:
+        dx, dy = 1, 0
+        dirs = {'W': True, 'S': True, 'A': False, 'D': True}
+    
+    
+    pygame.display.flip()
+    clock.tick(fps)
