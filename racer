@@ -1,0 +1,221 @@
+from ast import increment_lineno
+import pygame
+import random
+
+increasespeed = False
+
+width,height=840,650
+
+pygame.init()
+
+fps = 60
+
+score = 0
+
+coins = 0
+
+# steps is how fast our enemy car will approach our main car
+
+enemy_step = 5
+
+step = 5
+
+
+
+# to check if our car got coin
+
+coin_collision = False
+
+score_font = pygame.font.SysFont("Times New Roman", 40)
+
+coin_font = pygame.font.SysFont("Times New Roman", 40)
+
+
+clock=pygame.time.Clock()
+
+screen=pygame.display.set_mode((width,height))
+
+font1=pygame.image.load('/Users/endurance/Desktop/PP2_string/LAB 8/RACER/font1.jpg').convert()
+
+
+# our enemy cars
+
+global POSX
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__ (self):
+        super().__init__()
+        self.image = pygame.image.load('/Users/endurance/Desktop/PP2_string/LAB 8/RACER/enemy.png').convert_alpha()
+        self.rect=self.image.get_rect()
+        self.rect.center = (random.randint(200,width//2-30),-50)
+
+    def update(self):
+        global increasespeed
+        global enemy_step
+        if increasespeed == True:
+            enemy_step += 0.5
+            # increasespeed = False
+        global score
+        self.rect.move_ip(0,enemy_step+1)
+        if(self.rect.bottom>height+240):
+            score+=1
+            self.top=0
+            self.rect.center = (random.randint(200,width//2-30),-50)
+
+    def draw(self,screen):
+        screen.blit(self.image,self.rect)
+
+class Enemy1(pygame.sprite.Sprite):
+
+    def __init__ (self):
+        super().__init__()
+        self.image = pygame.image.load('/Users/endurance/Desktop/PP2_string/LAB 8/RACER/enemy1.png').convert_alpha()
+        self.rect=self.image.get_rect()
+        self.rect.center = (random.randint(width//2+30,width-200),-140)
+      
+    def update(self):
+        global score
+        self.rect.move_ip(0,enemy_step)
+        if(self.rect.bottom>height+240):
+            score+=1
+            self.top=0
+            self.rect.center = (random.randint(width//2+30,width-200),-140)
+    def draw(self,screen):
+        screen.blit(self.image,self.rect)
+
+# coin 
+
+class Coin(pygame.sprite.Sprite):
+    def __init__ (self):
+        super().__init__()
+        self.image = pygame.image.load('/Users/endurance/Desktop/PP2_string/LAB 8/RACER/coin.png').convert_alpha()
+        self.rect=self.image.get_rect()
+        self.rect.center=(random.randint(190,width-190),75)
+    def update(self):
+        global coins
+        global coin_collision
+        self.rect.move_ip(0,enemy_step-3)
+        if coin_collision == True:
+            n = random.randrange(1,5)
+            coins+=n
+            coin_collision = False
+            self.rect.center=(random.randint(190,width-190),75)
+        if(self.rect.bottom>height+200):
+            self.top=0
+            self.rect.center = (random.randint(190,width-190),45)
+    def draw(self,screen):
+        screen.blit(self.image,self.rect)
+
+# our main car
+    
+class player(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image=pygame.image.load('/Users/endurance/Desktop/PP2_string/LAB 8/RACER/player.png')
+        self.rect=self.image.get_rect()
+        self.rect.center = (400, 550)
+    def update(self):
+        pressed_keys=pygame.key.get_pressed()
+        if self.rect.left > 135:
+            if pressed_keys[pygame.K_LEFT]:
+                self.rect.move_ip(-step,0)
+        if self.rect.right < width - 135:
+            if pressed_keys[pygame.K_RIGHT]:
+                self.rect.move_ip(step,0)
+        if self.rect.bottom < 645:
+            if pressed_keys[pygame.K_DOWN]:
+                self.rect.move_ip(0,step)
+        if self.rect.top > 135:
+            if pressed_keys[pygame.K_UP]:
+                self.rect.move_ip(0,-step)
+    def draw(self,screen):
+        # screen.blit(self.image,self.rect)
+        screen.blit(self.image,self.rect)
+
+
+# calling functions
+
+E1 = Enemy()
+E2 = Enemy1()
+C1 = Coin()
+P1 = player()
+
+# just assembling some classes to make work with them more comfortable
+
+enemies = pygame.sprite.Group()
+enemies.add(E1)
+enemies.add(E2)
+
+kwakwa = pygame.sprite.Group()
+kwakwa.add(C1)
+
+# running our code 
+
+while True:
+    
+    # speed changes in definite amount of coins
+
+    # if coins == 50 or 100 or 150:
+    #     increasespeed = True
+    #     E1.update()
+    #     increasespeed = False
+
+    # music changes in definite amount of coins
+
+    keyboard = pygame.key.get_pressed()
+    if keyboard[pygame.K_SPACE]:
+        exit()
+
+
+
+       
+
+    # putting our background
+
+    screen.blit(font1,(0,0))
+
+    # some events
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.QUIT
+            exit()
+    
+    E1.update()
+    E2.update()
+    P1.update()
+
+    # if our enemy car hits our main car game will stop
+
+    if pygame.sprite.spritecollideany(P1, enemies):
+        pygame.quit()
+        exit()
+
+    if pygame.sprite.spritecollideany(P1, kwakwa):
+        coin_collision = True
+
+    C1.update()
+
+    # draw our sprites on the screen
+
+    E1.draw(screen)
+    E2.draw(screen)
+    P1.draw(screen)
+    C1.draw(screen)
+
+    # score rendering
+
+    score_img = score_font.render(f'SCORE: {str(score)}', True, pygame.Color('black'))
+    screen.blit(score_img, (10, 10))
+
+    # coin rendering
+
+    coin_img = coin_font.render(f'COINS: {str(coins)}', True , pygame.Color('black'))
+    screen.blit(coin_img,(600,10))
+
+    #screen refresh
+
+    pygame.display.update()
+    clock.tick(fps)
+
+
